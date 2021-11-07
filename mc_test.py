@@ -1,4 +1,3 @@
-from io import StringIO
 import numpy as np
 
 def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose = False):
@@ -6,6 +5,7 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
   # Create array for holdings of open positions (signified with 1) and valuation thereof
   holding = np.zeros(shape = positions.shape)
   holding = np.c_[holding, np.ones(positions.shape[0])]
+  
   # Seed opening cash
   holding[0,-1] = seed_capital
 
@@ -26,13 +26,12 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
     # Index of open positions
     open_positions_idx = np.nonzero(prior_pos)[0]
 
-    # Capture revaluation of opening positions - ###### TO BE COMPLETED ######
-    price_change = (prices[r,:] - prices[r-1,:]) #/ prices[r-1,:]
+    # Capture revaluation of opening positions
+    price_change = (prices[r,:] - prices[r-1,:]) 
     if r == 0:
       open_positions_reval = 0 
     else:
       open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
-      #open_positions_reval = holding[r-1,open_positions_idx]
 
     # Current available open positions
     available_positions_idx = np.nonzero(positions[r,:])[0]
@@ -83,7 +82,7 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
 
     # Update cash balance for sales 
     if sales_idx is not None:
-      proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx]) # EXCLUDE LAST COLUMN HERE, IE. CASH
+      proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx]) 
     else:
       proceed_sale = 0
     holding[r,-1] = holding[r,-1] + proceed_sale
@@ -146,3 +145,25 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
   volatility = np.std(np.ediff1d(np.log(portfolio_vltn))) * np.sqrt(12)
   
   return max_drawdown, cagr, volatility
+
+
+
+
+# Assign backtest result to variable
+mc_backtest1 = monte_carlo_backtest(prices, positions, seed_capital = 100, max_positions = 2, verbose = False)
+
+
+
+
+# Loop over backtest function to create list of attributes
+dd = []
+cagr = []
+vol = []
+for i in range(250):
+  result = monte_carlo_backtest(prices, positions, seed_capital = 100, max_positions = 3)
+  dd.append(result[0])
+  cagr.append(result[1])
+  vol.append(result[2])
+
+# Return dataframe - this to go in function
+df = pd.DataFrame({'max_drawdown': dd, 'cagr': cagr, 'volatility': vol})

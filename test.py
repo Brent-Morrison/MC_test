@@ -1,3 +1,6 @@
+from io import StringIO
+import numpy as np
+
 # Prices
 file_content1 = """
  1.00 	 1.00 	 1.00 	 1.00 	 1.00 	 1.00 	 1.00 	 1.00 	 1.00 	 1.00 
