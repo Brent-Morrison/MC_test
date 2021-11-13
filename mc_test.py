@@ -1,4 +1,7 @@
+# https://github.com/google/jax/issues/3702
+
 import numpy as np
+import pandas as pd
 
 def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose = False):
 
@@ -33,7 +36,7 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
     else:
       open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
 
-    # Current available open positions
+    # Current available open positions (MAKE THIS RANDOM FOR REFERENCE PORTFOLIO)
     available_positions_idx = np.nonzero(positions[r,:])[0]
 
     # If current available open position is the same stock as held in the prior period, select that stock
@@ -148,22 +151,24 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
 
 
 
-
-# Assign backtest result to variable
-mc_backtest1 = monte_carlo_backtest(prices, positions, seed_capital = 100, max_positions = 2, verbose = False)
-
-
-
-
 # Loop over backtest function to create list of attributes
-dd = []
-cagr = []
-vol = []
-for i in range(250):
-  result = monte_carlo_backtest(prices, positions, seed_capital = 100, max_positions = 3)
-  dd.append(result[0])
-  cagr.append(result[1])
-  vol.append(result[2])
+def monte_carlo_backtest1(prices, positions, seed_capital, max_positions, iter = 1000):
+  dd = []
+  cagr = []
+  vol = []
+  for i in range(iter):
+    result = monte_carlo_backtest(
+      prices=prices, 
+      positions=positions, 
+      seed_capital = seed_capital, 
+      max_positions = max_positions,
+      verbose = False
+      )
+    dd.append(result[0])
+    cagr.append(result[1])
+    vol.append(result[2])
 
-# Return dataframe - this to go in function
-df = pd.DataFrame({'max_drawdown': dd, 'cagr': cagr, 'volatility': vol})
+  # Return dataframe - this to go in function
+  df = pd.DataFrame({'max_drawdown': dd, 'cagr': cagr, 'volatility': vol})
+  
+  return df

@@ -1,5 +1,7 @@
 from io import StringIO
 import numpy as np
+import pandas as pd
+from mc_test import *
 
 # Prices
 file_content1 = """
@@ -55,3 +57,20 @@ with StringIO(file_content1) as f:
 
 with StringIO(file_content2) as f:
     positions = np.loadtxt(f, dtype=float)
+
+
+
+# Assign backtest result to variable
+mc_backtest1 = monte_carlo_backtest1(prices, positions, seed_capital = 100, max_positions = 5)
+
+
+
+
+# Test jax
+import jax.numpy as jnp
+from jax import grad, jit, vmap
+from jax import random
+
+key = random.PRNGKey(0)
+x = random.normal(key, (10,))
+print(x)
