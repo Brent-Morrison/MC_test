@@ -61,7 +61,13 @@ with StringIO(file_content2) as f:
 
 
 # Assign backtest result to variable
-mc_backtest1 = monte_carlo_backtest1(prices, positions, seed_capital = 100, max_positions = 5)
+mc_backtest1 = monte_carlo_backtest1(
+    prices, 
+    positions, 
+    seed_capital = 100, 
+    max_positions = 5,
+    rndm = False
+    )
 
 
 

@@ -3,7 +3,14 @@
 import numpy as np
 import pandas as pd
 
-def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose = False):
+def monte_carlo_backtest(
+  prices, 
+  positions, 
+  seed_capital, 
+  max_positions, 
+  rndm = False,
+  verbose = False
+  ):
 
   # Create array for holdings of open positions (signified with 1) and valuation thereof
   holding = np.zeros(shape = positions.shape)
@@ -37,7 +44,10 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
       open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
 
     # Current available open positions (MAKE THIS RANDOM FOR REFERENCE PORTFOLIO)
-    available_positions_idx = np.nonzero(positions[r,:])[0]
+    if rndm:
+      available_positions_idx = np.random.choice(range(positions.shape[1]), size=5, replace=False)
+    else:
+      available_positions_idx = np.nonzero(positions[r,:])[0]
 
     # If current available open position is the same stock as held in the prior period, select that stock
     hold_position_idx = np.intersect1d(open_positions_idx, available_positions_idx)
@@ -152,7 +162,15 @@ def monte_carlo_backtest(prices, positions, seed_capital, max_positions, verbose
 
 
 # Loop over backtest function to create list of attributes
-def monte_carlo_backtest1(prices, positions, seed_capital, max_positions, iter = 1000):
+def monte_carlo_backtest1(
+  prices, 
+  positions, 
+  seed_capital, 
+  max_positions, 
+  iter = 1000,
+  rndm = False
+  ):
+
   dd = []
   cagr = []
   vol = []
@@ -160,15 +178,28 @@ def monte_carlo_backtest1(prices, positions, seed_capital, max_positions, iter =
     result = monte_carlo_backtest(
       prices=prices, 
       positions=positions, 
-      seed_capital = seed_capital, 
-      max_positions = max_positions,
+      seed_capital=seed_capital, 
+      max_positions=max_positions,
+      rndm=rndm,
       verbose = False
       )
+    
     dd.append(result[0])
     cagr.append(result[1])
     vol.append(result[2])
 
-  # Return dataframe - this to go in function
+  # Return dataframe
   df = pd.DataFrame({'max_drawdown': dd, 'cagr': cagr, 'volatility': vol})
   
   return df
+
+
+mc_backtest1 = monte_carlo_backtest(
+    prices, 
+    positions, 
+    seed_capital = 100, 
+    max_positions = 5,
+    rndm = False,
+    verbose=True
+    )
+
