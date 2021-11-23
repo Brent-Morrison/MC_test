@@ -1,6 +1,7 @@
 from io import StringIO
 import numpy as np
 import pandas as pd
+from numba import jit
 from mc_test import *
 
 # Prices
@@ -51,32 +52,33 @@ file_content2 = """
 0	0	0	1	1	0	1	1	0	0
 """
 
-# Load data
-with StringIO(file_content1) as f:
-    prices = np.loadtxt(f, dtype=float)
+# # Load dummy data
+# with StringIO(file_content1) as f:
+#     prices = np.loadtxt(f, dtype=float)
 
-with StringIO(file_content2) as f:
-    positions = np.loadtxt(f, dtype=float)
+# with StringIO(file_content2) as f:
+#     positions = np.loadtxt(f, dtype=float)
 
+# Load csv data
+prices = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\prices_mtrx.csv', skip_header=1, delimiter=',', dtype=float)
+positions = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\positions_mtrx.csv', skip_header=1, delimiter=',', dtype=float)
 
+# Test
+test_df = monte_carlo_backtest(
+  prices, 
+  positions, 
+  seed_capital = 1000, 
+  max_positions = 5, 
+  rndm = True,
+  verbose = False
+  )
 
-# Assign backtest result to variable
-mc_backtest1 = monte_carlo_backtest1(
-    prices, 
-    positions, 
-    seed_capital = 100, 
-    max_positions = 5,
-    rndm = False
-    )
-
-
-
-
-# Test jax
-import jax.numpy as jnp
-from jax import grad, jit, vmap
-from jax import random
-
-key = random.PRNGKey(0)
-x = random.normal(key, (10,))
-print(x)
+# Test
+test_df1 = monte_carlo_backtest1(
+  prices, 
+  positions, 
+  seed_capital = 100, 
+  max_positions = 5,
+  iter = 10000,
+  rndm = True
+  ) 

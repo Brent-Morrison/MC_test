@@ -1,8 +1,17 @@
+# JAX random numbers
 # https://github.com/google/jax/issues/3702
+
+# Conda environment debug issue (numpy import)
+# https://github.com/microsoft/vscode-python/issues/13500
+
 
 import numpy as np
 import pandas as pd
+from numba import jit
 
+
+# Function
+@jit(nopython=True)
 def monte_carlo_backtest(
   prices, 
   positions, 
@@ -12,17 +21,55 @@ def monte_carlo_backtest(
   verbose = False
   ):
 
+  """Calculate monthly portfolio returns and calculate summary performance measures
+  for the period provided.  Portfolio selection can be fully randomised or partially randomised based on 
+  position entry provided.
+
+  Arguments
+  ---------
+  prices : array
+    Stock prices.  Columns represent stocks and rows months.  Must be fully populated and
+    not contain zeroes or null values
+  
+  positions : array
+    Represent the positions to be entered into.  Valid values are 0 and 1.  
+    1 = enter position.  Must be same shape as 'prices'.
+  
+  seed_capital : integer
+    Initial portfolio capital.
+
+  max_positions : integer
+    The maximum number of stocks to be held at any time. 
+  
+  rndm : boolean
+    True = randomly chose positions to enter ignoring those flagged in 'positions'
+    False = Chose positions to enter per that flagged in 'positions'
+
+  verbose : boolean
+    Print transaction details
+  """
+
+  # Error capture
+  if 0 in prices:
+    raise ValueError('The price data contains zeros.  This will trigger a division by zero')
+
+  if prices.shape != positions.shape:
+    raise ValueError('The price data contains zeros.  This will trigger a division by zero')
+
   # Create array for holdings of open positions (signified with 1) and valuation thereof
   holding = np.zeros(shape = positions.shape)
-  holding = np.c_[holding, np.ones(positions.shape[0])]
+  # holding = np.c_[holding, np.ones(positions.shape[0])]
+  holding = np.concatenate((holding, np.ones((positions.shape[0],1))), axis=1)
   
   # Seed opening cash
   holding[0,-1] = seed_capital
 
   valuation = np.zeros(shape = positions.shape)
-  valuation = np.c_[valuation, np.ones(positions.shape[0])]
+  #valuation = np.c_[valuation, np.ones(positions.shape[0])]
+  valuation = np.concatenate((valuation, np.ones((positions.shape[0],1))), axis=1)
 
-  prices = np.c_[prices, np.ones(positions.shape[0])]
+  #prices = np.c_[prices, np.ones(positions.shape[0])]
+  prices = np.concatenate((prices, np.ones((positions.shape[0],1))), axis=1)
 
   # Loop over all rows
   for r in range(positions.shape[0]):
@@ -37,15 +84,18 @@ def monte_carlo_backtest(
     open_positions_idx = np.nonzero(prior_pos)[0]
 
     # Capture revaluation of opening positions
+    # TO DO - Generates numba error.  NotImplementedError: only one advanced index supported
     price_change = (prices[r,:] - prices[r-1,:]) 
     if r == 0:
       open_positions_reval = 0 
     else:
       open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
 
-    # Current available open positions (MAKE THIS RANDOM FOR REFERENCE PORTFOLIO)
+    # Current available open positions 
+    # TO DO - if a stock is no longer available to trade it should be excluded from the population available
+    # for selection. How to do this?
     if rndm:
-      available_positions_idx = np.random.choice(range(positions.shape[1]), size=5, replace=False)
+      available_positions_idx = np.random.choice(range(positions.shape[1]), size=max_positions, replace=False)
     else:
       available_positions_idx = np.nonzero(positions[r,:])[0]
 
@@ -103,7 +153,7 @@ def monte_carlo_backtest(
     # Size purchases
     cash_avail = holding[r,-1]
     if sample_idx is not None:
-      holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0)
+      holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) # DIVIDE BY ZERO ERROR
     
     # Update cash balance for purchases
     if sample_idx is not None:
@@ -162,6 +212,7 @@ def monte_carlo_backtest(
 
 
 # Loop over backtest function to create list of attributes
+@jit(nopython=True)
 def monte_carlo_backtest1(
   prices, 
   positions, 
@@ -192,14 +243,3 @@ def monte_carlo_backtest1(
   df = pd.DataFrame({'max_drawdown': dd, 'cagr': cagr, 'volatility': vol})
   
   return df
-
-
-mc_backtest1 = monte_carlo_backtest(
-    prices, 
-    positions, 
-    seed_capital = 100, 
-    max_positions = 5,
-    rndm = False,
-    verbose=True
-    )
-
