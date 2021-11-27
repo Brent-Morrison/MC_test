@@ -38,8 +38,9 @@ For example this code...
     for i in open_positions_idx:
         open_positions_reval = open_positions_reval + (price_change[i] * holding[r-1,i])
     ```
-    Reference [1](https://github.com/numba/numba/issues/2157) and [2](https://github.com/numba/numba/issues/5389).
+    Reference [1](https://github.com/numba/numba/issues/2157) and [2](https://github.com/numba/numba/issues/5389).  
+
+- Numba does not support the ```np.c_``` function.  ```np.concatenate``` is a replacement for this.  
 
 ## Other issues  
-- Conda environment and debugging.
-It turns out NumPy does not import correctly when using the Visual Studio code debugger.  Workaround [here](https://github.com/microsoft/vscode-python/issues/13500)
+- Conda environment and debugging.  It turns out NumPy does not import correctly when using the Visual Studio code debugger.  Workaround [here](https://github.com/microsoft/vscode-python/issues/13500)

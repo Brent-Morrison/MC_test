@@ -78,12 +78,15 @@ def monte_carlo_backtest(
     open_positions_idx = np.nonzero(prior_pos)[0]
 
     # Capture revaluation of opening positions
-    # TO DO - Generates numba error: "NotImplementedError: only one advanced index supported"
     price_change = (prices[r,:] - prices[r-1,:]) 
     if r == 0:
       open_positions_reval = 0 
     else:
-      open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
+      # Generates numba error: "NotImplementedError: only one advanced index supported"
+      # open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
+      open_positions_reval = 0
+      for i in open_positions_idx:
+        open_positions_reval = open_positions_reval + (price_change[i] * holding[r-1,i])
 
     # Current available open positions 
     # TO DO - if a stock is no longer available to trade it should be excluded from the population available
@@ -133,13 +136,20 @@ def monte_carlo_backtest(
     sales_idx = np.where((compare_holding[0] != 0) & (compare_holding[1] == 0))[0]
 
     # Carry forward holding from prior period
-    holding[r,hold_position_idx] = holding[r-1,hold_position_idx]
+    # Generates numba error: "NotImplementedError: only one advanced index supported"
+    #holding[r,hold_position_idx] = holding[r-1,hold_position_idx]
+    for i in hold_position_idx:
+      holding[r,i] = holding[r-1,i]
 
     open_cash = holding[r,-1]
 
     # Update cash balance for sales 
     if sales_idx is not None:
-      proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx]) 
+      # Generates numba error: "NotImplementedError: only one advanced index supported"
+      #proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx]) 
+      proceed_sale = 0
+      for i in sales_idx:
+        proceed_sale = proceed_sale + (prices[r,i] * holding[r-1,i])
     else:
       proceed_sale = 0
     holding[r,-1] = holding[r,-1] + proceed_sale
@@ -147,13 +157,18 @@ def monte_carlo_backtest(
     # Size purchases
     cash_avail = holding[r,-1]
     if sample_idx is not None:
-      # TO DO -  - Generates numba error: "NotImplementedError: only one advanced index supported"
-      holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) 
+      # Generates numba error: "NotImplementedError: only one advanced index supported"
+      holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0)
+      for i in sample_idx:
+        holding[r,i] = np.round_(holding[r,i] * cash_avail / max_positions / prices[r,i], decimals=0)
     
     # Update cash balance for purchases
     if sample_idx is not None:
-      # TO DO -  - Generates numba error: "NotImplementedError: only one advanced index supported"
-      cost_purch = sum(holding[r,sample_idx] * prices[r,sample_idx]) 
+      # Generates numba error: "NotImplementedError: only one advanced index supported"
+      #cost_purch = np.sum(holding[r,sample_idx] * prices[r,sample_idx]) 
+      cost_purch = 0
+      for i in sample_idx:
+        cost_purch = cost_purch + (holding[r,i] * prices[r,i])
     else:
       cost_purch = 0
     holding[r,-1] = holding[r,-1] - cost_purch
