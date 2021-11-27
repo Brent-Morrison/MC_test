@@ -1,10 +1,4 @@
-# JAX random numbers
-# https://github.com/google/jax/issues/3702
-
-# Conda environment debug issue (numpy import)
-# https://github.com/microsoft/vscode-python/issues/13500
-
-
+# Imports
 import numpy as np
 import pandas as pd
 from numba import jit
@@ -43,7 +37,7 @@ def monte_carlo_backtest(
   
   rndm : boolean
     True = randomly chose positions to enter ignoring those flagged in 'positions'
-    False = Chose positions to enter per that flagged in 'positions'
+    False = chose positions to enter per that flagged in 'positions'
 
   verbose : boolean
     Print transaction details
@@ -51,24 +45,24 @@ def monte_carlo_backtest(
 
   # Error capture
   if 0 in prices:
-    raise ValueError('The price data contains zeros.  This will trigger a division by zero')
+    raise ValueError('The price data contains zeros.  This will trigger a division by zero.')
 
   if prices.shape != positions.shape:
-    raise ValueError('The price data contains zeros.  This will trigger a division by zero')
+    raise ValueError('The price data and position data must be of the same shape.')
 
   # Create array for holdings of open positions (signified with 1) and valuation thereof
   holding = np.zeros(shape = positions.shape)
-  # holding = np.c_[holding, np.ones(positions.shape[0])]
+  # holding = np.c_[holding, np.ones(positions.shape[0])]     # Unsupported by Numba
   holding = np.concatenate((holding, np.ones((positions.shape[0],1))), axis=1)
   
   # Seed opening cash
   holding[0,-1] = seed_capital
 
   valuation = np.zeros(shape = positions.shape)
-  #valuation = np.c_[valuation, np.ones(positions.shape[0])]
+  #valuation = np.c_[valuation, np.ones(positions.shape[0])]     # Unsupported by Numba
   valuation = np.concatenate((valuation, np.ones((positions.shape[0],1))), axis=1)
 
-  #prices = np.c_[prices, np.ones(positions.shape[0])]
+  #prices = np.c_[prices, np.ones(positions.shape[0])]     # Unsupported by Numba
   prices = np.concatenate((prices, np.ones((positions.shape[0],1))), axis=1)
 
   # Loop over all rows
@@ -84,7 +78,7 @@ def monte_carlo_backtest(
     open_positions_idx = np.nonzero(prior_pos)[0]
 
     # Capture revaluation of opening positions
-    # TO DO - Generates numba error.  NotImplementedError: only one advanced index supported
+    # TO DO - Generates numba error: "NotImplementedError: only one advanced index supported"
     price_change = (prices[r,:] - prices[r-1,:]) 
     if r == 0:
       open_positions_reval = 0 
@@ -153,10 +147,12 @@ def monte_carlo_backtest(
     # Size purchases
     cash_avail = holding[r,-1]
     if sample_idx is not None:
-      holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) # DIVIDE BY ZERO ERROR
+      # TO DO -  - Generates numba error: "NotImplementedError: only one advanced index supported"
+      holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) 
     
     # Update cash balance for purchases
     if sample_idx is not None:
+      # TO DO -  - Generates numba error: "NotImplementedError: only one advanced index supported"
       cost_purch = sum(holding[r,sample_idx] * prices[r,sample_idx]) 
     else:
       cost_purch = 0
