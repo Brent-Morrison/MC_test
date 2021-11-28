@@ -76,12 +76,12 @@ file_content3 = """
 1	0	0	0	0	0	0	0	0	0
 """
 
-# # Load dummy data
-# with StringIO(file_content1) as f:
-#     prices = np.loadtxt(f, dtype=float)
+# Load dummy data
+with StringIO(file_content1) as f:
+  prices = np.loadtxt(f, dtype=float)
 
-# with StringIO(file_content2) as f:
-#     positions = np.loadtxt(f, dtype=float)
+with StringIO(file_content2) as f:
+  positions = np.loadtxt(f, dtype=float)
 
 # Load csv data
 prices = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\prices_mtrx.csv', skip_header=1, delimiter=',', dtype=float)

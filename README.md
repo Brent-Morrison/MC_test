@@ -40,7 +40,13 @@ For example this code...
     ```
     Reference [1](https://github.com/numba/numba/issues/2157) and [2](https://github.com/numba/numba/issues/5389).  
 
-- Numba does not support the ```np.c_``` function.  ```np.concatenate``` is a replacement for this.  
+- Numba does not support the ```np.c_``` function.  ```np.concatenate``` has been used as a replacement.  
+
+- The use of ```np.random.choice``` throws this error *"TypeError: np.random.choice() first argument should be int or array, got range_state_int64"*.  This requires the first argument being changed from ```range(positions.shape[1])``` to ```np.arange(positions.shape[1])```.  
+
+- ```setdiff1d``` is unsupported.  
+
+- ```intersect1d``` is not supported.  In replacing this with a set operation ```np.array(list(set(open_positions_idx) & set(available_positions_idx)), dtype=int)``` an additional error was thrown.  Numba needs to be able to infer a type, it can not do so in the case of an empty list (as can be the case with this interection).  See [here](https://numba.pydata.org/numba-doc/latest/user/troubleshoot.html#my-code-has-an-untyped-list-problem).  The workaround is to set the type of the list, 
 
 ## Other issues  
 - Conda environment and debugging.  It turns out NumPy does not import correctly when using the Visual Studio code debugger.  Workaround [here](https://github.com/microsoft/vscode-python/issues/13500)

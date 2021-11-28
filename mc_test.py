@@ -1,3 +1,7 @@
+# Note 1 : Function not supported by Numba
+# Note 2 : "NotImplementedError: only one advanced index supported"
+
+
 # Imports
 import numpy as np
 import pandas as pd
@@ -5,7 +9,7 @@ from numba import jit
 
 
 # Function
-@jit(nopython=True)
+#@jit(nopython=True)
 def monte_carlo_backtest(
   prices, 
   positions, 
@@ -92,18 +96,30 @@ def monte_carlo_backtest(
     # TO DO - if a stock is no longer available to trade it should be excluded from the population available
     # for selection. How to do this?
     if rndm:
-      available_positions_idx = np.random.choice(range(positions.shape[1]), size=max_positions, replace=False)
+      available_positions_idx = np.random.choice(np.arange(positions.shape[1]), size=max_positions, replace=False)
     else:
       available_positions_idx = np.nonzero(positions[r,:])[0]
 
     # If current available open position is the same stock as held in the prior period, select that stock
-    hold_position_idx = np.intersect1d(open_positions_idx, available_positions_idx)
+    #hold_position_idx = np.intersect1d(open_positions_idx, available_positions_idx) # Note 2 / option 1
+    hold_position_idx = np.array(list(set(open_positions_idx) & set(available_positions_idx)), dtype=int) # Note 2 / option 2
+    #intsect1 = set(open_positions_idx) & set(available_positions_idx)
+    #if len(intsect1) == 0:
+    #  hold_position_idx = None
+    #else:
+    #  hold_position_idx = np.array(list(intsect1), dtype=int)
 
     # Count positions available to enter
     count_pos_avail = len(available_positions_idx) - len(hold_position_idx)
 
     # Index of positions that are available to sample
-    avail_position_to_sample_idx = np.setdiff1d(available_positions_idx, hold_position_idx)
+    #avail_position_to_sample_idx = np.setdiff1d(available_positions_idx, hold_position_idx) # Note 2/ option 1
+    avail_position_to_sample_idx = np.array(list(set(available_positions_idx) ^ set(hold_position_idx)), dtype=int) # Note 2/ option 2
+    #setdiff1 = set(available_positions_idx) ^ set(hold_position_idx)
+    #if len(setdiff1) == 0:
+    #  avail_position_to_sample_idx = None
+    #else:
+    #  avail_position_to_sample_idx = np.array(list(setdiff1), dtype=int)
 
     # Set the number of stocks to sample, minimum of max positions and stocksavailable to sample (this coud be nil) 
     adj_sample_size = min(max_positions - len(hold_position_idx), len(avail_position_to_sample_idx))
@@ -136,8 +152,7 @@ def monte_carlo_backtest(
     sales_idx = np.where((compare_holding[0] != 0) & (compare_holding[1] == 0))[0]
 
     # Carry forward holding from prior period
-    # Generates numba error: "NotImplementedError: only one advanced index supported"
-    #holding[r,hold_position_idx] = holding[r-1,hold_position_idx]
+    #holding[r,hold_position_idx] = holding[r-1,hold_position_idx] # Note 2
     for i in hold_position_idx:
       holding[r,i] = holding[r-1,i]
 
@@ -145,8 +160,7 @@ def monte_carlo_backtest(
 
     # Update cash balance for sales 
     if sales_idx is not None:
-      # Generates numba error: "NotImplementedError: only one advanced index supported"
-      #proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx]) 
+      #proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx]) # Note 2
       proceed_sale = 0
       for i in sales_idx:
         proceed_sale = proceed_sale + (prices[r,i] * holding[r-1,i])
@@ -157,15 +171,13 @@ def monte_carlo_backtest(
     # Size purchases
     cash_avail = holding[r,-1]
     if sample_idx is not None:
-      # Generates numba error: "NotImplementedError: only one advanced index supported"
-      holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0)
+      #holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) # Note 2
       for i in sample_idx:
         holding[r,i] = np.round_(holding[r,i] * cash_avail / max_positions / prices[r,i], decimals=0)
     
     # Update cash balance for purchases
     if sample_idx is not None:
-      # Generates numba error: "NotImplementedError: only one advanced index supported"
-      #cost_purch = np.sum(holding[r,sample_idx] * prices[r,sample_idx]) 
+      #cost_purch = np.sum(holding[r,sample_idx] * prices[r,sample_idx]) # Note 2
       cost_purch = 0
       for i in sample_idx:
         cost_purch = cost_purch + (holding[r,i] * prices[r,i])
