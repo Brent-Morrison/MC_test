@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from numba import jit
 from mc_test import *
+from utils import *
 
 # Prices
 file_content1 = """
@@ -109,3 +110,42 @@ test_df1 = monte_carlo_backtest1(
   iter = 10000,
   rndm = False
   ) 
+
+
+
+# Utils test
+# ----------
+
+from utils import *
+
+array_idx_0 = None
+array_idx_1 = np.array([1,0,1,0])
+
+arr0 = np.nonzero(array_idx_0)[0]
+arr1 = np.nonzero(array_idx_1)[0]
+arr2 = np.array([0,1,2,2,3,4])
+
+#arr0 = arr0.astype(np.int64)
+#arr1 = arr1.astype(np.int64)
+#arr2 = arr1.astype(np.int64)
+
+#lst0 = list(arr0)
+#lst1 = list(arr1)
+#lst2 = list(arr2)
+
+print('DATA')
+print('arr0: ', arr0)
+print('arr1: ', arr1)
+print('arr2: ', arr2)
+print('\n')
+print('INTERSECTION')
+print('is_02: ', intersect(arr0, arr2))
+print('is_20: ', intersect(arr2, arr0))
+print('is_12: ', intersect(arr1, arr2))
+print('is_21: ', intersect(arr2, arr1))
+print('\n')
+print('SET DIFFERENCE')
+print('sd_02: ', setdiff(arr0, arr2))
+print('sd_20: ', setdiff(arr2, arr0))
+print('sd_12: ', setdiff(arr1, arr2))
+print('sd_21: ', setdiff(arr2, arr1))

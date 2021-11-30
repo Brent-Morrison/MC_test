@@ -6,11 +6,11 @@
 import numpy as np
 import pandas as pd
 from numba import jit
-from numba.typed import List
+from utils import *
 
 
 # Function
-#@jit(nopython=True)
+@jit(nopython=True)
 def monte_carlo_backtest(
   prices, 
   positions, 
@@ -49,11 +49,18 @@ def monte_carlo_backtest(
   """
 
   # Error capture
+  # -------------
+
   if 0 in prices:
-    raise ValueError('The price data contains zeros.  This will trigger a division by zero.')
+    raise ValueError("The price data contains zeros.  This will trigger a division by zero.")
 
   if prices.shape != positions.shape:
-    raise ValueError('The price data and position data must be of the same shape.')
+    raise ValueError("The price data and position data must be of the same shape.")
+
+  for r in range(positions.shape[0]):
+    row = positions[r,:]
+    if np.sum(row) == 0:
+      raise ValueError("At least one row of the 'positions' data has no trade signal")
 
   # Create array for holdings of open positions (signified with 1) and valuation thereof
   holding = np.zeros(shape = positions.shape)
@@ -92,7 +99,10 @@ def monte_carlo_backtest(
       for i in open_positions_idx:
         open_positions_reval = open_positions_reval + (price_change[i] * holding[r-1,i])
 
-    # Current available open positions 
+
+    # Current prospective positions available to open (this will never be None)
+    # -------------------------------------------------------------------------
+
     # TO DO - if a stock is no longer available to trade it should be excluded from the population available
     # for selection. How to do this?
     if rndm:
@@ -101,35 +111,23 @@ def monte_carlo_backtest(
       available_positions_idx = np.nonzero(positions[r,:])[0]
 
 
-    # If current available open position is the same stock as held in the prior period, select that stock
-    # ---------------------------------------------------------------------------------------------------
+    # If the current available open positions (ie. those with a buy signal) are the    
+    # same stocks as held in the prior period, continue to hold that those stocks
+    # -----------------------------------------------------------------------------
 
-    hold_position_idx = np.intersect1d(open_positions_idx, available_positions_idx)                       ### Note 2 / option 1 ###
-    
-    #hold_position_idx = np.array(list(set(open_positions_idx) & set(available_positions_idx)), dtype=int) ### Note 2 / option 2 ###
-    
-    #intsect1 = set(open_positions_idx) & set(available_positions_idx)
-    #if len(intsect1) == 0:
-    #  hold_position_idx = np.array([], dtype=np.int64)
-    #else:
-    #  hold_position_idx = np.array(list(intsect1), dtype=np.int64)
+    #hold_position_idx = np.intersect1d(open_positions_idx, available_positions_idx)                       ### Note 2 / option 1 ###
+    hold_position_idx = intersect(open_positions_idx, available_positions_idx)
 
 
-    # Index of positions that are available to sample
-    # -----------------------------------------------
+    # Index of positions that are available to sample.  Stocks with a buy signal, ex those 
+    # that are already held and remain a buy per above, ie. in  'hold_position_idx'
+    # ------------------------------------------------------------------------------------
     
-    avail_position_to_sample_idx = np.setdiff1d(available_positions_idx, hold_position_idx)                          ### Note 2 / option 1 ###
-    
-    #avail_position_to_sample_idx = np.array(list(set(available_positions_idx) ^ set(hold_position_idx)), dtype=int) ### Note 2/ option 2 ###
-    
-    #setdiff1 = set(available_positions_idx) ^ set(hold_position_idx)
-    #if len(setdiff1) == 0:
-    #  avail_position_to_sample_idx = np.array([], dtype=np.int64)
-    #else:
-    #  avail_position_to_sample_idx = np.array(list(setdiff1), dtype=np.int64)
+    #avail_position_to_sample_idx = np.setdiff1d(available_positions_idx, hold_position_idx)                          ### Note 2 / option 1 ###
+    avail_position_to_sample_idx = setdiff(available_positions_idx, hold_position_idx)
 
 
-    # Set the number of stocks to sample, minimum of max positions and stocksavailable to sample (this coud be nil) 
+    # Set the number of stocks to sample, minimum of max positions and stocks available to sample (this coud be nil) 
     adj_sample_size = min(max_positions - len(hold_position_idx), len(avail_position_to_sample_idx))
 
     # Randomly choose one of the available positions to enter
@@ -139,6 +137,7 @@ def monte_carlo_backtest(
       sample_idx = None
     
     # Join positions derived from hold and sample
+    # https://stackoverflow.com/questions/51754268/using-numpy-vstack-in-numba ####################################
     if sample_idx is not None:
       c = np.concatenate((sample_idx, hold_position_idx))
     else:
@@ -243,7 +242,7 @@ def monte_carlo_backtest(
 
 
 # Loop over backtest function to create list of attributes
-#@jit(nopython=True)
+@jit(nopython=True)
 def monte_carlo_backtest1(
   prices, 
   positions, 
