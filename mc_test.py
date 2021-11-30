@@ -6,6 +6,7 @@
 import numpy as np
 import pandas as pd
 from numba import jit
+from numba.typed import List
 
 
 # Function
@@ -56,17 +57,17 @@ def monte_carlo_backtest(
 
   # Create array for holdings of open positions (signified with 1) and valuation thereof
   holding = np.zeros(shape = positions.shape)
-  # holding = np.c_[holding, np.ones(positions.shape[0])]     # Unsupported by Numba
+  # holding = np.c_[holding, np.ones(positions.shape[0])]                           ### Note 1 ###
   holding = np.concatenate((holding, np.ones((positions.shape[0],1))), axis=1)
   
   # Seed opening cash
   holding[0,-1] = seed_capital
 
   valuation = np.zeros(shape = positions.shape)
-  #valuation = np.c_[valuation, np.ones(positions.shape[0])]     # Unsupported by Numba
+  #valuation = np.c_[valuation, np.ones(positions.shape[0])]                        ### Note 1 ###
   valuation = np.concatenate((valuation, np.ones((positions.shape[0],1))), axis=1)
 
-  #prices = np.c_[prices, np.ones(positions.shape[0])]     # Unsupported by Numba
+  #prices = np.c_[prices, np.ones(positions.shape[0])]                              ### Note 1 ###
   prices = np.concatenate((prices, np.ones((positions.shape[0],1))), axis=1)
 
   # Loop over all rows
@@ -86,8 +87,7 @@ def monte_carlo_backtest(
     if r == 0:
       open_positions_reval = 0 
     else:
-      # Generates numba error: "NotImplementedError: only one advanced index supported"
-      # open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
+      # open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])   ### Note 1 ###
       open_positions_reval = 0
       for i in open_positions_idx:
         open_positions_reval = open_positions_reval + (price_change[i] * holding[r-1,i])
@@ -100,26 +100,34 @@ def monte_carlo_backtest(
     else:
       available_positions_idx = np.nonzero(positions[r,:])[0]
 
+
     # If current available open position is the same stock as held in the prior period, select that stock
-    #hold_position_idx = np.intersect1d(open_positions_idx, available_positions_idx) # Note 2 / option 1
-    hold_position_idx = np.array(list(set(open_positions_idx) & set(available_positions_idx)), dtype=int) # Note 2 / option 2
+    # ---------------------------------------------------------------------------------------------------
+
+    hold_position_idx = np.intersect1d(open_positions_idx, available_positions_idx)                       ### Note 2 / option 1 ###
+    
+    #hold_position_idx = np.array(list(set(open_positions_idx) & set(available_positions_idx)), dtype=int) ### Note 2 / option 2 ###
+    
     #intsect1 = set(open_positions_idx) & set(available_positions_idx)
     #if len(intsect1) == 0:
-    #  hold_position_idx = None
+    #  hold_position_idx = np.array([], dtype=np.int64)
     #else:
-    #  hold_position_idx = np.array(list(intsect1), dtype=int)
+    #  hold_position_idx = np.array(list(intsect1), dtype=np.int64)
 
-    # Count positions available to enter
-    count_pos_avail = len(available_positions_idx) - len(hold_position_idx)
 
     # Index of positions that are available to sample
-    #avail_position_to_sample_idx = np.setdiff1d(available_positions_idx, hold_position_idx) # Note 2/ option 1
-    avail_position_to_sample_idx = np.array(list(set(available_positions_idx) ^ set(hold_position_idx)), dtype=int) # Note 2/ option 2
+    # -----------------------------------------------
+    
+    avail_position_to_sample_idx = np.setdiff1d(available_positions_idx, hold_position_idx)                          ### Note 2 / option 1 ###
+    
+    #avail_position_to_sample_idx = np.array(list(set(available_positions_idx) ^ set(hold_position_idx)), dtype=int) ### Note 2/ option 2 ###
+    
     #setdiff1 = set(available_positions_idx) ^ set(hold_position_idx)
     #if len(setdiff1) == 0:
-    #  avail_position_to_sample_idx = None
+    #  avail_position_to_sample_idx = np.array([], dtype=np.int64)
     #else:
-    #  avail_position_to_sample_idx = np.array(list(setdiff1), dtype=int)
+    #  avail_position_to_sample_idx = np.array(list(setdiff1), dtype=np.int64)
+
 
     # Set the number of stocks to sample, minimum of max positions and stocksavailable to sample (this coud be nil) 
     adj_sample_size = min(max_positions - len(hold_position_idx), len(avail_position_to_sample_idx))
@@ -152,7 +160,7 @@ def monte_carlo_backtest(
     sales_idx = np.where((compare_holding[0] != 0) & (compare_holding[1] == 0))[0]
 
     # Carry forward holding from prior period
-    #holding[r,hold_position_idx] = holding[r-1,hold_position_idx] # Note 2
+    #holding[r,hold_position_idx] = holding[r-1,hold_position_idx]                  ### Note 2 ###
     for i in hold_position_idx:
       holding[r,i] = holding[r-1,i]
 
@@ -160,7 +168,7 @@ def monte_carlo_backtest(
 
     # Update cash balance for sales 
     if sales_idx is not None:
-      #proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx]) # Note 2
+      #proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx])             ### Note 2 ###
       proceed_sale = 0
       for i in sales_idx:
         proceed_sale = proceed_sale + (prices[r,i] * holding[r-1,i])
@@ -171,7 +179,7 @@ def monte_carlo_backtest(
     # Size purchases
     cash_avail = holding[r,-1]
     if sample_idx is not None:
-      #holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) # Note 2
+      #holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) ### Note 2 ###
       for i in sample_idx:
         holding[r,i] = np.round_(holding[r,i] * cash_avail / max_positions / prices[r,i], decimals=0)
     
@@ -230,12 +238,12 @@ def monte_carlo_backtest(
   # Volatility
   volatility = np.std(np.ediff1d(np.log(portfolio_vltn))) * np.sqrt(12)
   
-  return max_drawdown, cagr, volatility
+  return max_drawdown, cagr, volatility, portfolio_vltn
 
 
 
 # Loop over backtest function to create list of attributes
-@jit(nopython=True)
+#@jit(nopython=True)
 def monte_carlo_backtest1(
   prices, 
   positions, 

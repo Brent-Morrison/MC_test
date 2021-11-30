@@ -78,10 +78,13 @@ file_content3 = """
 
 # Load dummy data
 with StringIO(file_content1) as f:
-  prices = np.loadtxt(f, dtype=float)
+  prices1 = np.loadtxt(f, dtype=float)
 
 with StringIO(file_content2) as f:
-  positions = np.loadtxt(f, dtype=float)
+  positions1 = np.loadtxt(f, dtype=float)
+
+with StringIO(file_content3) as f:
+  positions2 = np.loadtxt(f, dtype=float)
 
 # Load csv data
 prices = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\prices_mtrx.csv', skip_header=1, delimiter=',', dtype=float)
@@ -89,20 +92,20 @@ positions = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\positions_mt
 
 # Test
 test_df = monte_carlo_backtest(
-  prices, 
-  positions, 
-  seed_capital = 1000, 
-  max_positions = 5, 
-  rndm = True,
-  verbose = False
+  prices1, 
+  positions2, 
+  seed_capital = 100, 
+  max_positions = 6, 
+  rndm = False,
+  verbose = True
   )
 
 # Test
 test_df1 = monte_carlo_backtest1(
   prices, 
   positions, 
-  seed_capital = 100, 
-  max_positions = 5,
+  seed_capital = 10000, 
+  max_positions = 15,
   iter = 10000,
-  rndm = True
+  rndm = False
   ) 
