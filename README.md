@@ -23,12 +23,11 @@ holdings, a random selection of available stocks are selected.
 This could result in excessive turnover, 100% turnover in some circumstances.  To mitigate this, a rule is enforced such that should a stock be held in period t, and it remains buy signal in period t+1, it will not be disposed of.  
 
 ## Performance
-The functions has been written in NumPy and acclerated with Numba.  
+The functions has been written in NumPy and accelerated with Numba.  
 
-Some issues encountered with Numba:  
+Numba requires a rigidtype structure and does not support all NumPy functions.  Some issues encountered with Numba:  
 
-- Numba supports only one advanced index.  This requires implementing loops as opposed to vectorised operations in certain circumstances.  
-For example this code...
+- Numba supports only one advanced index.  This requires implementing loops as opposed to vectorised operations in certain circumstances.  For example this code...
     ```python
     open_positions_reval = np.sum(price_change[open_positions_idx] * holding[r-1,open_positions_idx])
     ``` 
@@ -53,7 +52,21 @@ For example this code...
     else:
       c = hold_position_idx
     ``` 
-    ... is not going to work.  This is because there are *"code-paths that try to assign different types of arrays to the same variable"*.  Further explanation [here](https://stackoverflow.com/questions/51754268/using-numpy-vstack-in-numba).
+    ... is not going to work.  This is because there are *"code-paths that try to assign different types of arrays to the same variable"*, the ```None``` type is not compatible with an array.  Further explanation [here](https://stackoverflow.com/questions/51754268/using-numpy-vstack-in-numba).
+
+    - Accumulate operations on NumPy ufuncs is not supported.  Therefore maximum drawdown, which was calculated with code as so  ```np.max((np.maximum.accumulate(portfolio_vltn, axis=0) - portfolio_vltn) / np.maximum.accumulate(portfolio_vltn, axis=0))```, has been replaced with a custom function.
+      ```python
+      def max_dd(x):
+        run_max = x[0]
+        roll_max = np.empty_like(x)
+        dd_perc = np.empty_like(x)
+        for i, vltn in enumerate(x):
+          if vltn >= run_max:
+            run_max = vltn
+          roll_max[i] = run_max
+          dd_perc[i] = (roll_max[i] - x[i]) / roll_max[i]
+        return max(dd_perc)
+    ``` 
 
 ## Other issues  
 - Conda environment and debugging.  It turns out NumPy does not import correctly when using the Visual Studio code debugger.  Workaround [here](https://github.com/microsoft/vscode-python/issues/13500)

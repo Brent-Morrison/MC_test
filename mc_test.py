@@ -48,6 +48,7 @@ def monte_carlo_backtest(
     Print transaction details
   """
 
+
   # Error capture
   # -------------
 
@@ -61,6 +62,15 @@ def monte_carlo_backtest(
     row = positions[r,:]
     if np.sum(row) == 0:
       raise ValueError("At least one row of the 'positions' data has no trade signal")
+  
+  # Convert types for Numba compatability
+  # -------------------------------------
+
+  prices = prices.astype(np.float64)
+  positions = positions.astype(np.float64)
+  seed_capital_flt = np.array([seed_capital], dtype=np.float64)
+  max_positions_flt = np.array([max_positions], dtype=np.float64)
+
 
   # Create array for holdings of open positions (signified with 1) and valuation thereof
   holding = np.zeros(shape = positions.shape)
@@ -68,7 +78,7 @@ def monte_carlo_backtest(
   holding = np.concatenate((holding, np.ones((positions.shape[0],1))), axis=1)
   
   # Seed opening cash
-  holding[0,-1] = seed_capital
+  holding[0,-1] = seed_capital_flt[0]
 
   valuation = np.zeros(shape = positions.shape)
   #valuation = np.c_[valuation, np.ones(positions.shape[0])]                        ### Note 1 ###
@@ -134,17 +144,21 @@ def monte_carlo_backtest(
     if adj_sample_size > 0 and len(avail_position_to_sample_idx) > 0:
       sample_idx = np.random.choice(avail_position_to_sample_idx, size=adj_sample_size, replace=False)
     else:
-      sample_idx = None
+      #sample_idx = None
+      sample_idx = np.array([], dtype=np.int64)
     
     # Join positions derived from hold and sample
     # https://stackoverflow.com/questions/51754268/using-numpy-vstack-in-numba ####################################
-    if sample_idx is not None:
-      c = np.concatenate((sample_idx, hold_position_idx))
-    else:
-      c = hold_position_idx
+    #if sample_idx is not None:
+    #  c = np.concatenate((sample_idx, hold_position_idx))
+    #else:
+    #  c = hold_position_idx
+    c = np.concatenate((sample_idx, hold_position_idx))
 
     # Assign positions indicator to holding matrix
-    holding[r,c] = 1
+    #holding[r,c] = 1
+    for i in c:
+      holding[r,i] = 1
 
     # Create array for current versus prior holdings
     if r == 0:
@@ -180,7 +194,9 @@ def monte_carlo_backtest(
     if sample_idx is not None:
       #holding[r,sample_idx] = np.round_(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx], decimals=0) ### Note 2 ###
       for i in sample_idx:
-        holding[r,i] = np.round_(holding[r,i] * cash_avail / max_positions / prices[r,i], decimals=0)
+        #new_hold = np.round_(holding[r,i] * cash_avail / max_positions_flt[0] / prices[r,i], decimals=0)
+        new_hold = np.round_(holding[r,i] * cash_avail / max_positions_flt[0] / prices[r,i])
+        holding[r,i] = new_hold
     
     # Update cash balance for purchases
     if sample_idx is not None:
@@ -199,45 +215,46 @@ def monte_carlo_backtest(
     # Assign valuation 
     valuation[r,:] = prices[r,:] * holding[r,:]
 
-    if verbose:
-      print('LOOP: ',r)
-      print('Cash')
-      print('1a. open cash: '.ljust(30), np.round_(open_cash,1))
-      print('1b. sale proceeds: '.ljust(30), np.round_(proceed_sale,1))
-      print('1c. cost purchased: '.ljust(30), np.round_(cost_purch,1))
-      print('1d. closing cash: '.ljust(30), np.round_(holding[r,-1],1))
-      print('\n')
-      print('Holdings index')
-      print('2a. open holding: '.ljust(30), open_positions_idx) # np.sort(open_positions_idx)
-      print('2b. available: '.ljust(30), available_positions_idx)
-      print('2c. retain: '.ljust(30), hold_position_idx)
-      print('2d. sell: '.ljust(30), sales_idx)
-      print('2e. available to purchase: '.ljust(30), avail_position_to_sample_idx)
-      print('2f. purchased: '.ljust(30), sample_idx)
-      print('2g. closing holding: '.ljust(30), c)
-      print('\n')
-      print('Valuation')
-      print('3a. opening value: '.ljust(30), np.round_(np.sum(valuation[r-1,:]),1))
-      print('3b. revaluation: '.ljust(30), [np.round_(open_positions_reval,1), price_change[open_positions_idx], holding[r-1,open_positions_idx]])
-      print('3c. closing value: '.ljust(30), np.round_(np.sum(valuation[r,:]),1))
-      print('\n')
+    #  if verbose:
+    #   print('LOOP: ',r)
+    #   print('Cash')
+    #   print('1a. open cash: '.ljust(30), np.round_(open_cash,1))
+    #   print('1b. sale proceeds: '.ljust(30), np.round_(proceed_sale,1))
+    #   print('1c. cost purchased: '.ljust(30), np.round_(cost_purch,1))
+    #   print('1d. closing cash: '.ljust(30), np.round_(holding[r,-1],1))
+    #   print('\n')
+    #   print('Holdings index')
+    #   print('2a. open holding: '.ljust(30), open_positions_idx) # np.sort(open_positions_idx)
+    #   print('2b. available: '.ljust(30), available_positions_idx)
+    #   print('2c. retain: '.ljust(30), hold_position_idx)
+    #   print('2d. sell: '.ljust(30), sales_idx)
+    #   print('2e. available to purchase: '.ljust(30), avail_position_to_sample_idx)
+    #   print('2f. purchased: '.ljust(30), sample_idx)
+    #   print('2g. closing holding: '.ljust(30), c)
+    #   print('\n')
+    #   print('Valuation')
+    #   print('3a. opening value: '.ljust(30), np.round_(np.sum(valuation[r-1,:]),1))
+    #   print('3b. revaluation: '.ljust(30), [np.round_(open_positions_reval,1), price_change[open_positions_idx], holding[r-1,open_positions_idx]])
+    #   print('3c. closing value: '.ljust(30), np.round_(np.sum(valuation[r,:]),1))
+    #   print('\n')
   
   # Portfolio valuation
   portfolio_vltn = np.sum(valuation, axis=1)
 
   # Maximum drawdown percentage
-  max_drawdown = np.max(np.maximum.accumulate(portfolio_vltn, axis=0) - portfolio_vltn) / np.max(portfolio_vltn)
+  #max_drawdown = np.max((np.maximum.accumulate(portfolio_vltn, axis=0) - portfolio_vltn) / np.maximum.accumulate(portfolio_vltn, axis=0))
+  max_drawdown = max_dd(portfolio_vltn)
 
   # Compound monthly growth rate
-  cmgr = np.power(portfolio_vltn[-1] / portfolio_vltn[0], 1 / (len(portfolio_vltn) - 1)) - 1
+  #cmgr = np.power(portfolio_vltn[-1] / portfolio_vltn[0], 1 / (len(portfolio_vltn) - 1)) - 1
 
   # Annual growth rate
-  cagr = np.power(1 + cmgr, 12) - 1
+  #cagr = np.power(1 + cmgr, 12) - 1
 
   # Volatility
-  volatility = np.std(np.ediff1d(np.log(portfolio_vltn))) * np.sqrt(12)
+  #volatility = np.std(np.ediff1d(np.log(portfolio_vltn))) * np.sqrt(12)
   
-  return max_drawdown, cagr, volatility, portfolio_vltn
+  return max_drawdown#, cagr, volatility, portfolio_vltn
 
 
 
