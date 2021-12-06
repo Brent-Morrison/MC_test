@@ -113,7 +113,8 @@ test_df = monte_carlo_backtest(
   positions2, 
   seed_capital = 100.0, 
   max_positions = 6, 
-  rndm = False
+  rndm = False,
+  verbose = False
   )
 
 print('\n')
@@ -123,18 +124,23 @@ print('vol: '.ljust(20), test_df[2])
 print('pfolio_val: '.ljust(20), test_df[3])
 
 
+
 # Test looped jit function
+import time
 tic = time.perf_counter()
 test_df1 = monte_carlo_backtest1(
   prices, 
   positions, 
-  seed_capital = 100, 
+  seed_capital = 100.0, 
   max_positions = 15,
   iter = 10000,
   rndm = False
   ) 
 toc = time.perf_counter()
 print('Elapsed time: ', round(toc - tic,2), 'seconds')
+
+
+
 
 
 # Utils test
