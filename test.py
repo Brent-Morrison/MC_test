@@ -91,32 +91,57 @@ with StringIO(file_content3) as f:
 prices = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\prices_mtrx.csv', skip_header=1, delimiter=',', dtype=float)
 positions = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\positions_mtrx.csv', skip_header=1, delimiter=',', dtype=float)
 
-# Test
+
+# Test non-jit function
+np_test_df = monte_carlo_backtest_np(
+  prices1, 
+  positions2, 
+  seed_capital = 100.0, 
+  max_positions = 6, 
+  rndm = False,
+  verbose = False
+  )
+
+print('max_drawdown: '.ljust(20), np_test_df[0])
+print('cagr: '.ljust(20), np_test_df[1])
+print('vol: '.ljust(20), np_test_df[2])
+print('pfolio_val: '.ljust(20), np_test_df[3])
+
+# Test jit function
 test_df = monte_carlo_backtest(
   prices1, 
   positions2, 
-  seed_capital = 100, 
+  seed_capital = 100.0, 
   max_positions = 6, 
-  rndm = False,
-  verbose = True
+  rndm = False
   )
 
-# Test
+print('\n')
+print('max_drawdown: '.ljust(20), test_df[0])
+print('cagr: '.ljust(20), test_df[1])
+print('vol: '.ljust(20), test_df[2])
+print('pfolio_val: '.ljust(20), test_df[3])
+
+
+# Test looped jit function
+tic = time.perf_counter()
 test_df1 = monte_carlo_backtest1(
   prices, 
   positions, 
-  seed_capital = 10000, 
+  seed_capital = 100, 
   max_positions = 15,
   iter = 10000,
   rndm = False
   ) 
-
+toc = time.perf_counter()
+print('Elapsed time: ', round(toc - tic,2), 'seconds')
 
 
 # Utils test
 # ----------
 
 from utils import *
+import time
 
 array_idx_0 = None
 array_idx_1 = np.array([1,0,1,0])
@@ -124,23 +149,27 @@ array_idx_1 = np.array([1,0,1,0])
 arr0 = np.nonzero(array_idx_0)[0]
 arr1 = np.nonzero(array_idx_1)[0]
 arr2 = np.array([0,1,2,2,3,4])
-
-#arr0 = arr0.astype(np.int64)
-#arr1 = arr1.astype(np.int64)
-#arr2 = arr1.astype(np.int64)
-
-#lst0 = list(arr0)
-#lst1 = list(arr1)
-#lst2 = list(arr2)
+arr3 = np.random.choice(arr2, size=3, replace=False)
+arr4 = np.array([], dtype=np.int64)
+arr5 = np.random.choice(arr2, size=0, replace=False)
 
 print('DATA')
-print('arr0: ', arr0)
-print('arr1: ', arr1)
-print('arr2: ', arr2)
+print('arr0: ', arr0, 'type: ', arr0.dtype)
+print('arr1: ', arr1, 'type: ', arr1.dtype)
+print('arr2: ', arr2, 'type: ', arr2.dtype)
+print('arr3: ', arr3, 'type: ', arr3.dtype)
+print('arr4: ', arr4, 'type: ', arr4.dtype)
+print('arr5: ', arr5, 'type: ', arr5.dtype)
+print('\n')
+print('UNION')
+print('un_34: ', union(arr3, arr5))
+print('un_43: ', union(arr4, arr3))
+print('un_12: ', union(arr1, arr2))
+print('un_21: ', union(arr2, arr1))
 print('\n')
 print('INTERSECTION')
-print('is_02: ', intersect(arr0, arr2))
-print('is_20: ', intersect(arr2, arr0))
+print('is_34: ', intersect(arr3, arr4))
+print('is_43: ', intersect(arr4, arr3))
 print('is_12: ', intersect(arr1, arr2))
 print('is_21: ', intersect(arr2, arr1))
 print('\n')
@@ -149,3 +178,24 @@ print('sd_02: ', setdiff(arr0, arr2))
 print('sd_20: ', setdiff(arr2, arr0))
 print('sd_12: ', setdiff(arr1, arr2))
 print('sd_21: ', setdiff(arr2, arr1))
+
+
+# https://github.com/numba/numba/issues/2648
+@jit(nopython=True)
+def rnd1(x, decimals, out):
+  return np.round_(x, decimals, out)
+
+@jit(nopython=True)
+def rnd2(x, decimals):
+  return np.round_(x, decimals)
+
+
+
+x=np.arange(10.) + 0.2
+print(x)
+print(np.round_(x))
+y=np.empty_like(x)
+print(rnd1(x, 0, y))
+
+
+print(rnd2(x, 0))
