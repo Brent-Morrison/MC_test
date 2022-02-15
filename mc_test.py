@@ -114,7 +114,7 @@ def monte_carlo_backtest(
 
 
     # If the current available open positions (ie. those with a buy signal) are the    
-    # same stocks as held in the prior period, continue to hold that those stocks
+    # same stocks as held in the prior period, continue to hold those stocks
     # -----------------------------------------------------------------------------
     hold_position_idx = intersect(open_positions_idx, available_positions_idx)
 
