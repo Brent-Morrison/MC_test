@@ -6,7 +6,7 @@
 import numpy as np
 import pandas as pd
 from numba import jit
-from utils import *
+from utils import intersect, setdiff, union, max_dd
 
 
 # Backtest function (numba - nopython)
@@ -488,6 +488,7 @@ def monte_carlo_backtest1(
   dd = []
   cagr = []
   vol = []
+  ptf_val_ts = []
   for i in range(iter):
     result = monte_carlo_backtest(
       prices=prices, 
@@ -501,8 +502,14 @@ def monte_carlo_backtest1(
     dd.append(result[0])
     cagr.append(result[1])
     vol.append(result[2])
+    ptf_val_ts.append(result[3])
 
   # Return dataframe
-  df = pd.DataFrame({'max_drawdown': dd, 'cagr': cagr, 'volatility': vol})
+  df = pd.DataFrame({
+    'max_drawdown': dd, 
+    'cagr': cagr, 
+    'volatility': vol,
+    'portfolio_valuation_ts': ptf_val_ts
+    })
   
   return df

@@ -1,6 +1,6 @@
 from io import StringIO
-#import numpy as np
-#import pandas as pd
+import numpy as np
+import pandas as pd
 from numba import jit
 from mc_test import *
 from utils import *
@@ -129,11 +129,11 @@ print('pfolio_val: '.ljust(20), test_df[3])
 import time
 tic = time.perf_counter()
 test_df1 = monte_carlo_backtest1(
-  prices, 
-  positions, 
+  prices1, 
+  positions1, 
   seed_capital = 100.0, 
-  max_positions = 15,
-  iter = 10000,
+  max_positions = 4,
+  iter = 10,
   rndm = False
   ) 
 toc = time.perf_counter()

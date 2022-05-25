@@ -12,7 +12,7 @@ unrealistic for a portfolio seeded with €20k cash.  In this example an investo
 10 positions.  
 
 How do we form an expectation of the performance of choosing 10 positions at random from a population of 100
-stocks available for selection (we assume indifference within the 100 stocks available for selection).  Does performance attributable to stock 1 through 10 differ to that for 91 though 100?
+stocks available for selection (we assume indifference within the 100 stocks available for selection)?  Does performance attributable to stock 1 through 10 differ to that for 91 though 100?
 
 We can answer this questions using simulation.  
 
@@ -20,11 +20,13 @@ The functions in this project perform Monte Carlo simulations on stocks for whic
 trading signal has been generated.  Specifically, if there are more tradings signals generated than desired
 holdings, a random selection of available stocks are selected.  
 
-Naively implemented such a routine can result in excessive turnover, 100% turnover in some instances.  An example of this is evident in the example provided above, in period 1 stocks 1 though 10 are selected (this determined via the randomised selection procedure) and held, then disposed of, and then stocks 91 through 100 are randomly selected and held in period 2.  This is not a realistic investment approach should say stocks 1 through 8 remain a buy signal in period 2.  These would continue to be held in order to avoid transaction costs (remember we are indifferent to selection across stocks that have a buy signal).  To mitigate this unrealistic turnover, the simulation process enforces a rule such that should a stock be held in period t, and it remains buy signal in period t+1, it will not be disposed of.  Closing out the example above, 2 positions would become available to be randomly sampled in period 2 from the remaining population of buy positions, maintaining the portfolio position size of 10 stocks.  
+Naively implemented such a routine can result in excessive turnover, 100% turnover in some instances.  An example of this is evident in the example provided above, in period 1 stocks 1 though 10 are selected (this determined via the randomised selection procedure) and held, then disposed of, and then stocks 91 through 100 are randomly selected and held in period 2.  This is not a realistic investment approach should say stocks 1 through 8 remain a buy signal in period 2.  These would continue to be held in order to avoid transaction costs (remember we are indifferent to selection across stocks that have a buy signal).  To mitigate this unrealistic turnover, the simulation process enforces logic such that should a stock be held in period t, and it remains buy signal in period t+1, it will not be disposed of.  Closing out the example above, 2 positions become available to be randomly sampled in period 2 from the remaining population of buy positions, maintaining the portfolio position size of 10 stocks.  
 
 
 ## Future development
-Portfolio rebalancing has not been implemented.
+Implementation of portfolio rebalancing.  
+
+Tracing of positions and transaction associated the maximum and minimum values of performance metrics.  This functionality is useful to understand the specific simulation resulting in say the maximum CAGR. 
 
 
 ## Performance
