@@ -166,6 +166,7 @@ def monte_carlo_backtest(
         proceed_sale = proceed_sale + (prices[r,i] * holding[r-1,i])
     else:
       proceed_sale = 0
+    proceed_sale = np.floor(proceed_sale)
     holding[r,-1] = holding[r,-1] + proceed_sale
 
     # Size purchases
@@ -183,6 +184,7 @@ def monte_carlo_backtest(
         cost_purch = cost_purch + (holding[r,i] * prices[r,i])
     else:
       cost_purch = 0
+    cost_purch = np.ceil(cost_purch)
     holding[r,-1] = holding[r,-1] - cost_purch
 
     # Roll forward cash
@@ -191,6 +193,8 @@ def monte_carlo_backtest(
 
     # Assign valuation 
     valuation[r,:] = prices[r,:] * holding[r,:]
+
+    #close_hold = np.append(c, holding.shape[1]-1)
 
     if verbose:
       print('LOOP: ',r)
@@ -214,6 +218,8 @@ def monte_carlo_backtest(
       print('3b. revaluation: '.ljust(30), open_positions_reval)
       print('3c. closing value: '.ljust(30), np.sum(valuation[r,:]))
       print('\n')
+      #print('Test - close vltn detail: '.ljust(30), [close_hold, holding[r,close_hold]])
+      #print('\n')
   
 
   # Performance metrics
@@ -402,17 +408,20 @@ def monte_carlo_backtest_np(
       proceed_sale = sum(prices[r,sales_idx] * holding[r-1,sales_idx])
     else:
       proceed_sale = 0
+    proceed_sale = np.floor(proceed_sale)
     holding[r,-1] = holding[r,-1] + proceed_sale
 
     # Size purchases
     cash_avail = holding[r,-1]
     if sample_idx is not None:
       holding[r,sample_idx] = np.floor(holding[r,sample_idx] * cash_avail / max_positions / prices[r,sample_idx])
+    
     # Update cash balance for purchases
     if sample_idx is not None:
       cost_purch = np.sum(holding[r,sample_idx] * prices[r,sample_idx])
     else:
       cost_purch = 0
+    cost_purch = np.ceil(cost_purch)
     holding[r,-1] = holding[r,-1] - cost_purch
 
     # Roll forward cash
@@ -421,6 +430,8 @@ def monte_carlo_backtest_np(
 
     # Assign valuation 
     valuation[r,:] = prices[r,:] * holding[r,:]
+
+    close_hold = np.append(c, holding.shape[1]-1)
 
     if verbose:
       print('LOOP: ',r)
@@ -444,6 +455,8 @@ def monte_carlo_backtest_np(
       print('3b. revaluation: '.ljust(30), [np.round_(open_positions_reval,1), price_change[open_positions_idx], holding[r-1,open_positions_idx]])
       print('3c. closing value: '.ljust(30), np.round_(np.sum(valuation[r,:]),1))
       print('\n')
+      print('Test - close vltn detail: '.ljust(30), [close_hold, holding[r,close_hold]])
+      print('\n')
   
 
   # Performance metrics
@@ -463,7 +476,7 @@ def monte_carlo_backtest_np(
 
   # Volatility
   volatility = np.std(np.ediff1d(np.log(portfolio_vltn))) * np.sqrt(12)
-  
+
   return max_drawdown, cagr, volatility, portfolio_vltn
 
 

@@ -95,11 +95,11 @@ positions = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\positions_mt
 # Test non-jit function
 np_test_df = monte_carlo_backtest_np(
   prices1, 
-  positions2, 
+  positions1, 
   seed_capital = 100.0, 
   max_positions = 6, 
   rndm = False,
-  verbose = False
+  verbose = True
   )
 
 print('max_drawdown: '.ljust(20), np_test_df[0])
@@ -107,14 +107,15 @@ print('cagr: '.ljust(20), np_test_df[1])
 print('vol: '.ljust(20), np_test_df[2])
 print('pfolio_val: '.ljust(20), np_test_df[3])
 
+
 # Test jit function
 test_df = monte_carlo_backtest(
   prices1, 
-  positions2, 
+  positions1, 
   seed_capital = 100.0, 
   max_positions = 6, 
   rndm = False,
-  verbose = False
+  verbose = True
   )
 
 print('\n')
