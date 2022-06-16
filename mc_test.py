@@ -194,7 +194,9 @@ def monte_carlo_backtest(
     # Assign valuation 
     valuation[r,:] = prices[r,:] * holding[r,:]
 
-    #close_hold = np.append(c, holding.shape[1]-1)
+    # Closing holding info
+    close_hold_qty = holding[r,:]
+    close_hold_idx = np.nonzero(close_hold_qty)
 
     if verbose:
       print('LOOP: ',r)
@@ -217,9 +219,9 @@ def monte_carlo_backtest(
       print('3a. opening value: '.ljust(30), np.sum(valuation[r-1,:]))
       print('3b. revaluation: '.ljust(30), open_positions_reval)
       print('3c. closing value: '.ljust(30), np.sum(valuation[r,:]))
+      print('3d. closing holding idx: '.ljust(30), close_hold_idx)
+      print('3e. closing holding qty: '.ljust(30), close_hold_qty[np.nonzero(close_hold_qty)])
       print('\n')
-      #print('Test - close vltn detail: '.ljust(30), [close_hold, holding[r,close_hold]])
-      #print('\n')
   
 
   # Performance metrics
@@ -431,7 +433,9 @@ def monte_carlo_backtest_np(
     # Assign valuation 
     valuation[r,:] = prices[r,:] * holding[r,:]
 
-    close_hold = np.append(c, holding.shape[1]-1)
+    # Closing holding info
+    close_hold_qty = holding[r,:]
+    close_hold_idx = np.nonzero(close_hold_qty)
 
     if verbose:
       print('LOOP: ',r)
@@ -454,8 +458,8 @@ def monte_carlo_backtest_np(
       print('3a. opening value: '.ljust(30), np.round_(np.sum(valuation[r-1,:]),1))
       print('3b. revaluation: '.ljust(30), [np.round_(open_positions_reval,1), price_change[open_positions_idx], holding[r-1,open_positions_idx]])
       print('3c. closing value: '.ljust(30), np.round_(np.sum(valuation[r,:]),1))
-      print('\n')
-      print('Test - close vltn detail: '.ljust(30), [close_hold, holding[r,close_hold]])
+      print('3d. closing holding idx: '.ljust(30), close_hold_idx)
+      print('3e. closing holding qty: '.ljust(30), close_hold_qty[np.nonzero(close_hold_qty)])
       print('\n')
   
 
