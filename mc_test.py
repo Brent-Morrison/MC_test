@@ -81,6 +81,10 @@ def monte_carlo_backtest(
   # Add column for cash to prices array
   prices = np.concatenate((prices, np.ones((positions.shape[0],1))), axis=1)
 
+  # Empty list for detailed results (closing hold index / quantity)
+  close_idx_lst = []
+  close_qty_lst = []
+
   # Loop over all rows
   for r in range(positions.shape[0]):
     
@@ -196,7 +200,11 @@ def monte_carlo_backtest(
 
     # Closing holding info
     close_hold_qty = holding[r,:]
-    close_hold_idx = np.nonzero(close_hold_qty)
+    close_hold_idx = np.nonzero(close_hold_qty)[0]
+
+    # Append to list
+    close_idx_lst.append(close_hold_idx)
+    close_qty_lst.append(close_hold_qty[np.nonzero(close_hold_qty)])
 
     if verbose:
       print('LOOP: ',r)
@@ -242,7 +250,7 @@ def monte_carlo_backtest(
   # Volatility
   volatility = np.std(np.ediff1d(np.log(portfolio_vltn))) * np.sqrt(12)
 
-  return max_drawdown, cagr, volatility, portfolio_vltn
+  return max_drawdown, cagr, volatility, portfolio_vltn, close_idx_lst, close_qty_lst
 
 
 
@@ -327,6 +335,10 @@ def monte_carlo_backtest_np(
 
   # Add column for cash to prices array
   prices = np.concatenate((prices, np.ones((positions.shape[0],1))), axis=1)
+
+  # Empty list for detailed results (closing hold index / quantity)
+  close_idx_lst = []
+  close_qty_lst = []
 
   # Loop over all rows
   for r in range(positions.shape[0]):
@@ -435,7 +447,11 @@ def monte_carlo_backtest_np(
 
     # Closing holding info
     close_hold_qty = holding[r,:]
-    close_hold_idx = np.nonzero(close_hold_qty)
+    close_hold_idx = np.nonzero(close_hold_qty)[0]
+
+    # Append to list
+    close_idx_lst.append(close_hold_idx)
+    close_qty_lst.append(close_hold_qty[np.nonzero(close_hold_qty)])
 
     if verbose:
       print('LOOP: ',r)
@@ -481,7 +497,7 @@ def monte_carlo_backtest_np(
   # Volatility
   volatility = np.std(np.ediff1d(np.log(portfolio_vltn))) * np.sqrt(12)
 
-  return max_drawdown, cagr, volatility, portfolio_vltn
+  return max_drawdown, cagr, volatility, portfolio_vltn, close_idx_lst, close_qty_lst
 
 
 
@@ -506,6 +522,8 @@ def monte_carlo_backtest1(
   cagr = []
   vol = []
   ptf_val_ts = []
+  close_idx_lst = []
+  close_qty_lst = []
   for i in range(iter):
     result = monte_carlo_backtest(
       prices=prices, 
@@ -520,13 +538,17 @@ def monte_carlo_backtest1(
     cagr.append(result[1])
     vol.append(result[2])
     ptf_val_ts.append(result[3])
+    close_idx_lst.append(result[4])
+    close_qty_lst.append(result[5])
 
   # Return dataframe
   df = pd.DataFrame({
     'max_drawdown': dd, 
     'cagr': cagr, 
     'volatility': vol,
-    'portfolio_valuation_ts': ptf_val_ts
+    'portfolio_valuation_ts': ptf_val_ts,
+    'pstn_idx': close_idx_lst,
+    'pstn_qty': close_qty_lst,
     })
   
   return df

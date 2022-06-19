@@ -134,12 +134,15 @@ test_df1 = monte_carlo_backtest1(
   positions1, 
   seed_capital = 100.0, 
   max_positions = 4,
-  iter = 10,
+  iter = 100,
   rndm = False
   ) 
 toc = time.perf_counter()
 print('Elapsed time: ', round(toc - tic,2), 'seconds')
 
+# Extract position data from df
+test_df1.iloc[:,5]
+test_df1.iloc[:,4]
 
 
 
