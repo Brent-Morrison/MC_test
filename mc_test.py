@@ -112,9 +112,13 @@ def monte_carlo_backtest(
     # TO DO - if a stock is no longer available to trade it should be excluded from the 
     # population available for selection. How to do this?
     if rndm:
-      available_positions_idx = np.random.choice(np.arange(positions.shape[1]), size=max_positions, replace=False)
+      #available_positions_idx = np.random.choice(np.arange(positions.shape[1]), size=max_positions, replace=False)
+      available_positions_idx = np.where(positions[r,:] != 9)[0]
+      max_size = min(max_positions,len(available_positions_idx))
+      available_positions_idx = np.random.choice(available_positions_idx, size=max_size, replace=False)
     else:
-      available_positions_idx = np.nonzero(positions[r,:])[0]
+      #available_positions_idx = np.nonzero(positions[r,:])[0]
+      available_positions_idx = np.where(positions[r,:] == 1)[0]
 
 
     # If the current available open positions (ie. those with a buy signal) are the    
@@ -366,9 +370,13 @@ def monte_carlo_backtest_np(
     # TO DO - if a stock is no longer available to trade it should be excluded from the 
     # population available for selection. How to do this?
     if rndm:
-      available_positions_idx = np.random.choice(np.arange(positions.shape[1]), size=max_positions, replace=False)
+      #available_positions_idx = np.random.choice(np.arange(positions.shape[1]), size=max_positions, replace=False)
+      available_positions_idx = np.where(positions[r,:] != 9)[0]
+      max_size = min(max_positions,len(available_positions_idx))
+      available_positions_idx = np.random.choice(available_positions_idx, size=max_size, replace=False)
     else:
-      available_positions_idx = np.nonzero(positions[r,:])[0]
+      #available_positions_idx = np.nonzero(positions[r,:])[0]
+      available_positions_idx = np.where(positions[r,:] == 1)[0]
 
 
     # If the current available open positions (ie. those with a buy signal) are the    

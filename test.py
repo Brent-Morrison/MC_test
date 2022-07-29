@@ -31,9 +31,9 @@ file_content1 = """
 
 # Positions
 file_content2 = """
-1	1	1	1	0	0	0	0	0	0
-0	0	1	1	1	1	0	0	0	0
-0	0	0	1	1	1	1	1	0	0
+1	0	9	9	9	9	9	9	9	9
+0	0	1	1	9	1	0	0	0	9
+0	0	0	1	9	1	1	1	0	9
 0	0	0	0	0	0	1	1	1	1
 0	0	0	0	1	1	1	1	0	0
 0	0	1	1	1	1	0	0	0	0
@@ -49,8 +49,8 @@ file_content2 = """
 0	0	0	0	0	0	1	1	1	1
 0	0	0	0	1	1	1	1	0	0
 0	0	1	1	1	1	0	0	0	0
-1	1	1	1	0	0	0	0	0	0
-0	0	1	1	1	1	0	0	0	0
+9	1	1	1	0	0	9	9	9	9
+9	0	1	1	1	1	9	9	9	9
 """
 
 # Positions
@@ -97,8 +97,8 @@ np_test_df = monte_carlo_backtest_np(
   prices1, 
   positions1, 
   seed_capital = 100.0, 
-  max_positions = 6, 
-  rndm = False,
+  max_positions = 10, 
+  rndm = True,
   verbose = True
   )
 
@@ -113,8 +113,8 @@ test_df = monte_carlo_backtest(
   prices1, 
   positions1, 
   seed_capital = 100.0, 
-  max_positions = 6, 
-  rndm = False,
+  max_positions = 10, 
+  rndm = True,
   verbose = True
   )
 
@@ -134,7 +134,7 @@ test_df1 = monte_carlo_backtest1(
   positions1, 
   seed_capital = 100.0, 
   max_positions = 4,
-  iter = 100,
+  iter = 1,
   rndm = False
   ) 
 toc = time.perf_counter()
