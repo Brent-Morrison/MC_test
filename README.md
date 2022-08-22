@@ -23,8 +23,10 @@ holdings, a random selection of available stocks are selected.
 Naively implemented such a routine can result in excessive turnover, 100% turnover in some instances.  An example of this is evident in the example provided above, in period 1 stocks 1 though 10 are selected (this determined via the randomised selection procedure) and held, then disposed of, and then stocks 91 through 100 are randomly selected and held in period 2.  This is not a realistic investment approach should say stocks 1 through 8 remain a buy signal in period 2.  These would continue to be held in order to avoid transaction costs (remember we are indifferent to selection across stocks that have a buy signal).  To mitigate this unrealistic turnover, the simulation process enforces logic such that should a stock be held in period t, and it remains buy signal in period t+1, it will not be disposed of.  Closing out the example above, 2 positions become available to be randomly sampled in period 2 from the remaining population of buy positions, maintaining the portfolio position size of 10 stocks.  
 
 
-## Future development
-Portfolio rebalancing.
+## Future development  
+
+#### Portfolio rebalancing  
+
 [An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616)  
 
 [Avoiding the Downside: A Practical Review of the Critical Line Algorithm for Mean–Semivariance Portfolio Optimization](https://ideas.repec.org/h/wsi/wschap/9789811222634_0017.html)  
@@ -33,6 +35,8 @@ Portfolio rebalancing.
 
 [The Critical Line Method](http://web.stanford.edu/~wfsharpe/mia/opt/mia_opt3.htm)
 
+#### Audit trail  
+ 
 Tracing of positions and transaction associated the maximum and minimum values of performance metrics.  This functionality is useful to understand the specific simulation resulting in specific performance metrics. 
 
 
