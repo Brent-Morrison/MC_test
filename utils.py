@@ -61,3 +61,31 @@ def max_dd(x):
     dd_perc[i] = (roll_max[i] - x[i]) / roll_max[i]
     #print(i, np.round(x[i],2), np.round(roll_max[i],2), np.round(dd_perc[i],5))  
   return max(dd_perc)
+
+
+def group_choice_np(x, s, r):
+  res = []
+  for i in np.unique(x):
+    print(i)
+    arr = np.random.choice(np.where(x==i)[0], size=s, replace=r)#.flatten()
+    print(arr)
+    res = np.concatenate((res, arr))#, axis=None)
+  return res
+
+
+@jit(nopython=True)
+def group_choice(x, s, r):
+  
+  # Initialise empty list - messing to type as int64
+  res = np.random.choice(x, size=0, replace=False)
+  res = res.astype(np.int64)
+
+  # Sample by group
+  for i in np.unique(x):
+    print(i)
+    arr = np.random.choice(np.where(x==i)[0], size=s, replace=r)#.flatten()
+    print(arr)
+    res = union(res, arr)
+  
+  return res
+

@@ -93,6 +93,7 @@ positions = np.genfromtxt(r'C:\Users\brent\Documents\R\Misc_scripts\positions_mt
 
 
 # Test non-jit function
+# ---------------------
 np_test_df = monte_carlo_backtest_np(
   prices1, 
   positions1, 
@@ -109,6 +110,7 @@ print('pfolio_val: '.ljust(20), np_test_df[3])
 
 
 # Test jit function
+# -----------------
 test_df = monte_carlo_backtest(
   prices1, 
   positions1, 
@@ -127,6 +129,7 @@ print('pfolio_val: '.ljust(20), test_df[3])
 
 
 # Test looped jit function
+# ------------------------
 import time
 tic = time.perf_counter()
 test_df1 = monte_carlo_backtest1(
@@ -149,7 +152,6 @@ test_df1.iloc[:,4]
 
 # Utils test
 # ----------
-
 from utils import *
 import time
 
@@ -188,6 +190,17 @@ print('sd_02: ', setdiff(arr0, arr2))
 print('sd_20: ', setdiff(arr2, arr0))
 print('sd_12: ', setdiff(arr1, arr2))
 print('sd_21: ', setdiff(arr2, arr1))
+
+
+# Test sample by group function
+# -----------------------------
+
+# https://stackoverflow.com/questions/57198687/how-to-randomly-choose-1-sample-for-each-category-in-numpy-array-integer-encode
+x = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3])
+
+group_choice_np(x=x, s=2, r=False)
+group_choice(x=x, s=2, r=False)
+
 
 
 # https://github.com/numba/numba/issues/2648

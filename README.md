@@ -24,9 +24,16 @@ Naively implemented such a routine can result in excessive turnover, 100% turnov
 
 
 ## Future development
-Implementation of portfolio rebalancing.  
+Portfolio rebalancing.
+[An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616)  
 
-Tracing of positions and transaction associated the maximum and minimum values of performance metrics.  This functionality is useful to understand the specific simulation resulting in say the maximum CAGR. 
+[Avoiding the Downside: A Practical Review of the Critical Line Algorithm for Mean–Semivariance Portfolio Optimization](https://ideas.repec.org/h/wsi/wschap/9789811222634_0017.html)  
+
+[Mean-Variance Portfolio Selection With Complex Constraints](https://d-nb.info/986416843/34)  
+
+[The Critical Line Method](http://web.stanford.edu/~wfsharpe/mia/opt/mia_opt3.htm)
+
+Tracing of positions and transaction associated the maximum and minimum values of performance metrics.  This functionality is useful to understand the specific simulation resulting in specific performance metrics. 
 
 
 ## Performance
@@ -59,7 +66,7 @@ Numba requires a rigid type structure and does not support all NumPy functions. 
     else:
       c = hold_position_idx
     ``` 
-    ... is not going to work.  This is because there are *"code-paths that try to assign different types of arrays to the same variable"*, the ```None``` type is not compatible with an array.  Further explanation [here](https://stackoverflow.com/questions/51754268/using-numpy-vstack-in-numba).
+    ... is not going to work.  This is because there are *"code-paths that try to assign different types of arrays to the same variable"*, the ```None``` type is not compatible with an array.  Further explanation [here](https://stackoverflow.com/questions/51754268/using-numpy-vstack-in-numba).  The ```union``` function in utils.py is the jit friendly stand in.
 
 - Accumulate operations on NumPy ufuncs is not supported.  Therefore maximum drawdown, which was calculated with code as so...  
     ```python
